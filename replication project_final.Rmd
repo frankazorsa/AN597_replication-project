@@ -35,6 +35,7 @@ library(ggplot2)
 ###Figure 1 a, b
 5.1 Data preparation:
 As mentioned previously, all data are available for download from the supplementary material of Kamhi et al. (2015), or more specifically from a Dryad repository. We can download the data table directly into R:
+
 ####Figure 1. Average aggression scores (a,c) and frequency of responses in three behavioural categories (b,d) are presented for intraspecific assays (a,b) and interspecific assays (c,d) for major and minor workers.
 
 ```{r}
@@ -204,7 +205,7 @@ dataset %>%
   theme_bw()
 ```
 
-####Figure 3. Mean of dopamine (DA), serotonin (5-HT) and octopamine (OA) brain titres for estimated brain mass for minors and majors. *Error bars are not included.
+####Figure 3. Mean of dopamine (DA), serotonin (5-HT) and octopamine (OA) brain titres for estimated brain mass for minors and majors. Error bars are not included.
 ```{r}
 library(dplyr)
 library(ggplot2)
@@ -251,7 +252,7 @@ ggplot(data = data.m, aes(x = subcaste, y = value, fill = variable)) +
        geom_bar(stat = 'identity', position = 'dodge')
 ```
 
-###Figure 4: Best-fit regression lines of dopamine (DA), serotonin (5-HT) and octopamine (OA) titres in both majors and minors and the number of times a worker performed non-aggressive behaviours, olfactory assessment and aggressive action (ln). *Only the frequency of aggressive behaviours showed a significant positive correlation.
+###Figure 4: Best-fit regression lines of dopamine (DA), serotonin (5-HT) and octopamine (OA) titres in both majors and minors and the number of times a worker performed non-aggressive behaviours, olfactory assessment and aggressive action (ln). Only the frequency of aggressive behaviours showed a significant positive correlation.
 ```{r}
 attach(f)
 names(f)
@@ -356,7 +357,7 @@ abline(coefficients(reg8), lwd=2, lty=2,
        col="red")
 ```
 
-###Figure 5. Distribution of aggression scores for control and pharmacologically treated majors and minors are presented with lines indicating mean. The mean frequencies of behaviours are shown in control and epinastine. *Error bars are not included.
+###Figure 5. Distribution of aggression scores for control and pharmacologically treated majors and minors are presented with lines indicating mean. The mean frequencies of behaviours are shown in control and epinastine. Error bars are not included.
 ```{r}
 i <- read.csv("https://raw.githubusercontent.com/frankazorsa/AN597_replication-project/master/epn_treatments.csv?token=ANEFADVZ42HWFRGK4GPAKHS57AX6W")
 i
