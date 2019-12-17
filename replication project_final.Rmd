@@ -1,0 +1,528 @@
+---
+title: "Replication project"
+author: "Frank Azorsa"
+date: "11/29/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+1. Title: Polymorphism and division of labour in a socially complex ant: neuromodulaton of aggression in the Australian weaver ant, Oecophylla smaragdina
+
+
+2. Authors: J. Frances Kamhi, Kelley Nunn, Simon K. A. Robson and James F. A. Traniello.
+
+3. Goal: The authors tested the hypothesis that division of labour by morphologically differentiated workers in complex insect societies is regulated by biogenic amines. They examined variation in levels of monoamines between O. smaragdina minor and major workers and determined their role in controlling subcaste-specific differences in aggressive behaviours associated with territorial defence.
+
+<p align="center">
+  <img width="460" height="300" src="https://photos.smugmug.com/photos/i-Vb6fB45/2/L/i-Vb6fB45-L.jpg">
+  <p align="center"><i id = "italic_ele">Oecophylla smaragdina</i></p> 
+</p>
+
+4. Dataset: The datasets used to replicate the result of this article have been downloaded from Dryad: doi:10.5061/dryad.36s2m.
+
+5. Analysis: Summary statistics are presented as mean +/- 95% confidence intervals and all statistical analysis were performed using JMP PRO 11 statistical software. Aggression scores and the frequency of behaviours in response categories (non-aggressive behaviours, olfactory assessment and aggressive actions) of subcaste or treatment groups were compared using non-parametric Mann – Whitney U-tests. Simple linear regression analyses were used to determine the relationship between amine titre and the natural log of the frequency of behaviours in each category. Biogenic amine titres and movement assays were compared with Student’s t-tests. 
+
+```{r}
+#Replication project notes: Here I mainly replicate all figures, and performed non-parametric Mann – Whitney U-tests. First I installed the following packages and their dependencies: ggplot2, car, curl, dplyr, tidyr, reshape2.
+```
+```{r}
+library(curl)
+library(car)
+library(ggplot2)
+```
+###Figure 1 a, b
+5.1 Data preparation:
+As mentioned previously, all data are available for download from the supplementary material of Kamhi et al. (2015), or more specifically from a Dryad repository. We can download the data table directly into R:
+####Figure 1. Average aggression scores (a,c) and frequency of responses in three behavioural categories (b,d) are presented for intraspecific assays (a,b) and interspecific assays (c,d) for major and minor workers.
+
+```{r}
+e <- read.csv("https://raw.githubusercontent.com/frankazorsa/AN597_replication-project/master/intrasp_assays.csv?token=ANEFADSOQH3RRWFFKEIT5JS57AXYO")
+e
+```
+```{r}
+class(e)#check the data type of the object e.
+```
+```{r}
+names(e)#column names
+```
+```{r}
+count <- table(e$subcaste)#count the number of major and minor workers
+count
+```
+
+###Figure 1a
+```{r}
+library(dplyr)
+library(ggplot2)
+cleandata <- e %>%
+  group_by (subcaste) %>%
+  summarise (mean_agg.metric = mean(agg.metric, na.rm = TRUE), sd_agg.metric =sd(agg.metric, na.rm = TRUE), count=n(), se_agg.metric =(sd_agg.metric/(sqrt(count))))
+cleandata
+```
+```{r}
+Lab2Plot <- ggplot(cleandata, aes(x = subcaste, y=mean_agg.metric)) + 
+  geom_bar(stat = "identity", color = "black", 
+           position = position_dodge()) + 
+  geom_errorbar(aes(ymin = mean_agg.metric-se_agg.metric, ymax = mean_agg.metric + se_agg.metric), width = .2) + 
+  labs(x ="subcaste", y = "aggression score") + 
+  theme_classic()
+
+Lab2Plot
+```
+
+###Figure 1b
+```{r}
+library(dplyr)
+library(ggplot2)
+cleandata2 <- e %>%
+  group_by (subcaste) %>%
+  summarise (mean_non.agg.freq = mean(non.agg.freq, na.rm = TRUE),
+             mean_antennation = mean(antennation, na.rm = TRUE),
+             mean_agg.freq = mean(agg.freq, na.rm = TRUE),
+             sd_non.agg.freq = sd(non.agg.freq, na.rm = TRUE),
+             sd_antennation = sd(antennation, na.rm = TRUE), 
+             sd_agg.freq = sd(agg.freq, na.rm = TRUE),
+             count=n(),
+             se_non.agg.freq = (sd_non.agg.freq/(sqrt(count))),
+             se_antennation = (sd_antennation/(sqrt(count))),
+             se_agg.freq = (sd_agg.freq/(sqrt(count))))
+cleandata2
+```
+```{r}
+means4 <- aggregate(cleandata2, by=list(cleandata2$subcaste), mean)
+means4
+```
+```{r}
+means4$subcaste <- NULL
+means4
+```
+```{r}
+names(means4)[names(means4) == 'Group.1'] <- 'subcaste'
+means4
+```
+```{r}
+dataset <- means4[1:4]
+dataset
+```
+```{r}
+names(dataset)
+```
+```{r}
+data(dataset)
+library(ggplot2)
+library(tidyr)
+dataset %>%
+  gather("Type", "no.responses",-subcaste) %>%
+  ggplot(aes(subcaste, no.responses, fill = Type)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  theme_bw()
+```
+
+###Figure 1 c,d
+```{r}
+f <- read.csv("https://raw.githubusercontent.com/frankazorsa/AN597_replication-project/master/intersp_assays.csv?token=ANEFADRF5N5SD377F34LQQ257AX3C")
+f
+```
+```{r}
+class(f)
+```
+```{r}
+names(f)
+```
+```{r}
+count <- table(f$subcaste)
+count
+```
+
+###Figure 1 c
+```{r}
+library(dplyr)
+library(ggplot2)
+cleandata <- f %>%
+  group_by (subcaste) %>%
+  summarise (mean_agg.metric = mean(agg.metric, na.rm = TRUE), sd_agg.metric =sd(agg.metric, na.rm = TRUE), count=n(), se_agg.metric =(sd_agg.metric/(sqrt(count))))
+cleandata
+```
+```{r}
+Lab1Plot <- ggplot(cleandata, aes(x = subcaste, y=mean_agg.metric)) + 
+  geom_bar(stat = "identity", color = "black", 
+           position = position_dodge()) + 
+  geom_errorbar(aes(ymin = mean_agg.metric-se_agg.metric, ymax = mean_agg.metric + se_agg.metric), width = .2) + 
+  labs(x ="subcaste", y = "aggression score") + 
+  theme_classic()
+
+Lab1Plot
+```
+
+#Figure 1 d
+```{r}
+library(dplyr)
+library(ggplot2)
+cleandata1 <- f %>%
+  group_by (subcaste) %>%
+  summarise (mean_non.agg.freq = mean(non.agg.freq, na.rm = TRUE),
+             mean_antennation = mean(antennation, na.rm = TRUE),
+             mean_agg.freq = mean(agg.freq, na.rm = TRUE),
+             sd_non.agg.freq = sd(non.agg.freq, na.rm = TRUE),
+             sd_antennation = sd(antennation, na.rm = TRUE), 
+             sd_agg.freq = sd(agg.freq, na.rm = TRUE),
+             count=n(),
+             se_non.agg.freq = (sd_non.agg.freq/(sqrt(count))),
+             se_antennation = (sd_antennation/(sqrt(count))),
+             se_agg.freq = (sd_agg.freq/(sqrt(count))))
+cleandata1
+```
+```{r}
+means <- aggregate(cleandata1, by=list(cleandata1$subcaste), mean)
+means
+```
+```{r}
+means$subcaste <- NULL
+means
+```
+```{r}
+names(means)[names(means) == 'Group.1'] <- 'subcaste'
+means
+```
+```{r}
+dataset <- means[1:4]
+dataset
+```
+```{r}
+names(dataset)
+```
+```{r}
+data(dataset)
+library(ggplot2)
+library(tidyr)
+dataset %>%
+  gather("Type", "no.responses",-subcaste) %>%
+  ggplot(aes(subcaste, no.responses, fill = Type)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  theme_bw()
+```
+
+####Figure 3. Mean of dopamine (DA), serotonin (5-HT) and octopamine (OA) brain titres for estimated brain mass for minors and majors. *Error bars are not included.
+```{r}
+library(dplyr)
+library(ggplot2)
+cleandata4 <- f %>%
+  group_by (subcaste) %>%
+  summarise (mean_DA.brain.mass = mean(DA.brain.mass, na.rm = TRUE),
+             mean_X5.HT.brain.mass = mean(X5.HT.brain.mass, na.rm = TRUE),
+             mean_OA.brain.mass = mean(OA.brain.mass, na.rm = TRUE), 
+             sd_DA.brain.mass = sd(DA.brain.mass, na.rm = TRUE),
+             sd_X5.HT.brain.mass = sd(X5.HT.brain.mass, na.rm = TRUE),
+             sd_OA.brain.mass = sd(OA.brain.mass, na.rm = TRUE),
+             count=n(), 
+             se_DA.brain.mass = (sd_DA.brain.mass/(sqrt(count))),
+             se_X5.HT.brain.mass = (sd_X5.HT.brain.mass/(sqrt(count))),
+             se_OA.brain.mass = (sd_OA.brain.mass/(sqrt(count))))
+cleandata4
+```
+```{r}
+means1 <- aggregate(cleandata4, by=list(cleandata4$subcaste), mean)
+means1
+```
+```{r}
+means1$subcaste <- NULL
+means1
+```
+```{r}
+names(means1)[names(means1) == 'Group.1'] <- 'subcaste'
+means1
+```
+```{r}
+dataset1 <- means1[1:4]
+dataset1
+```
+```{r}
+names(dataset1)
+```
+```{r}
+library(reshape2)
+library(ggplot2)
+dataset1
+data.m <- melt(dataset1, id.vars='subcaste')
+data.m
+ggplot(data = data.m, aes(x = subcaste, y = value, fill = variable)) + 
+       geom_bar(stat = 'identity', position = 'dodge')
+```
+
+###Figure 4: Best-fit regression lines of dopamine (DA), serotonin (5-HT) and octopamine (OA) titres in both majors and minors and the number of times a worker performed non-aggressive behaviours, olfactory assessment and aggressive action (ln). *Only the frequency of aggressive behaviours showed a significant positive correlation.
+```{r}
+attach(f)
+names(f)
+```
+```{r}
+reg0 <- lm(non.agg.freq~DA.brain.mass, data = f)
+summary(reg0)
+```
+```{r}
+plot(DA.brain.mass, non.agg.freq,pch=16, 
+               xlab="DA", 
+               ylab="non-aggressive behavior")
+abline(coefficients(reg0), lwd=2, lty=2, 
+       col="red")
+```
+```{r}
+reg1 <- lm(non.agg.freq~X5.HT.brain.mass, data = f)
+summary(reg1)
+```
+```{r}
+plot(X5.HT.brain.mass, non.agg.freq,pch=16, 
+               xlab="5-HT", 
+               ylab="non-aggressive behavior")
+abline(coefficients(reg1), lwd=2, lty=2, 
+       col="red")
+```
+```{r}
+reg2 <- lm(non.agg.freq~OA.brain.mass, data = f)
+summary(reg2)
+```
+```{r}
+plot(OA.brain.mass, non.agg.freq,pch=16, 
+               xlab="OA", 
+               ylab="non-aggressive behavior")
+abline(coefficients(reg2), lwd=2, lty=2, 
+       col="red")
+```
+```{r}
+reg3 <- lm(antennation~DA.brain.mass, data = f)
+summary(reg3)
+```
+```{r}
+plot(DA.brain.mass, antennation,pch=16, 
+               xlab="DA", 
+               ylab="olfactory assessment")
+abline(coefficients(reg3), lwd=2, lty=2, 
+       col="red")
+```
+```{r}
+reg4 <- lm(antennation~X5.HT.brain.mass, data = f)
+summary(reg4)
+```
+```{r}
+plot(X5.HT.brain.mass, antennation,pch=16, 
+               xlab="DA", 
+               ylab="olfactory assessment")
+abline(coefficients(reg4), lwd=2, lty=2, 
+       col="red")
+```
+```{r}
+reg5 <- lm(antennation~OA.brain.mass, data = f)
+summary(reg5)
+```
+```{r}
+plot(OA.brain.mass, antennation,pch=16, 
+               xlab="DA", 
+               ylab="olfactory assessment")
+abline(coefficients(reg5), lwd=2, lty=2, 
+       col="red")
+```
+```{r}
+reg6 <- lm(agg.freq~DA.brain.mass, data = f)
+summary(reg6)
+```
+```{r}
+plot(DA.brain.mass, agg.freq,pch=16, 
+               xlab="DA", 
+               ylab="aggressive actions")
+abline(coefficients(reg6), lwd=2, lty=2, 
+       col="red")
+```
+```{r}
+reg7 <- lm(agg.freq~X5.HT.brain.mass, data = f)
+summary(reg7)
+```
+```{r}
+plot(X5.HT.brain.mass, agg.freq,pch=16, 
+               xlab="5-HT", 
+               ylab="aggressive actions")
+abline(coefficients(reg7), lwd=2, lty=2, 
+       col="red")
+```
+```{r}
+reg8 <- lm(agg.freq~OA.brain.mass, data = f)
+summary(reg8)
+```
+```{r}
+plot(OA.brain.mass, agg.freq,pch=16, 
+               xlab="OA", 
+               ylab="aggressive actions")
+abline(coefficients(reg8), lwd=2, lty=2, 
+       col="red")
+```
+
+###Figure 5. Distribution of aggression scores for control and pharmacologically treated majors and minors are presented with lines indicating mean. The mean frequencies of behaviours are shown in control and epinastine. *Error bars are not included.
+```{r}
+i <- read.csv("https://raw.githubusercontent.com/frankazorsa/AN597_replication-project/master/epn_treatments.csv?token=ANEFADVZ42HWFRGK4GPAKHS57AX6W")
+i
+```
+```{r}
+t.test(i$movement.line.crosses ~ i$treatment)#t-test, to determine whether the means of two groups are equal to each other
+```
+```{r}
+names(i)
+```
+```{r}
+j <- subset(i, treatment=="control")
+j
+```
+```{r}
+ggplot (j, aes(agg.metric)) +
+  geom_histogram(color = "darkgray", fill ="white", binwidth = .5) +
+  labs(x="aggresion score", y="control major") +
+  geom_vline(aes(xintercept = mean(i$agg.metric, na.rm = TRUE)))
+```
+```{r}
+k <- subset(i, treatment=="epinastine")
+k
+```
+```{r}
+ggplot (k, aes(agg.metric)) +
+  geom_histogram(color = "darkgray", fill ="white", binwidth = .5) +
+  labs(x="aggresion score", y="EPN major") +
+  geom_vline(aes(xintercept = mean(i$agg.metric, na.rm = TRUE)))
+```
+```{r}
+names(i)
+```
+```{r}
+library(dplyr)
+library(ggplot2)
+cleandata5 <- i %>%
+  group_by (treatment) %>%
+  summarise (mean_non.agg.freq = mean(non.agg.freq, na.rm = TRUE),
+             mean_antennation = mean(antennation, na.rm = TRUE),
+             mean_agg.freq = mean(agg.freq, na.rm = TRUE),
+             sd_non.agg.freq = sd(non.agg.freq, na.rm = TRUE),
+             sd_antennation = sd(antennation, na.rm = TRUE), 
+             sd_agg.freq = sd(agg.freq, na.rm = TRUE),
+             count=n(),
+             se_non.agg.freq = (sd_non.agg.freq/(sqrt(count))),
+             se_antennation = (sd_antennation/(sqrt(count))),
+             se_agg.freq = (sd_agg.freq/(sqrt(count))))
+cleandata5
+```
+```{r}
+means2 <- aggregate(cleandata5, by=list(cleandata5$treatment), mean)
+means2
+```
+```{r}
+means2$treatment <- NULL
+means2
+```
+```{r}
+names(means2)[names(means2) == 'Group.1'] <- 'treatment'
+means2
+```
+```{r}
+dataset3 <- means2[1:4]
+dataset3
+```
+```{r}
+library(reshape2)
+library(ggplot2)
+dataset3
+data.n <- melt(dataset3, id.vars='treatment')
+data.n
+ggplot(data = data.n, aes(x = treatment, y = value, fill = variable)) + 
+       geom_bar(stat = 'identity', position = 'dodge')
+```
+
+###Figure 5 a, c
+```{r}
+l <- read.csv("https://raw.githubusercontent.com/frankazorsa/AN597_replication-project/master/oa_treatments.csv?token=ANEFADRFRK44IJ7IIALGXP257AYA4")
+l
+```
+```{r}
+t.test(l$movement.line.crosses ~ l$treatment)#t-test, to determine whether the means of two groups are equal to each other
+```
+```{r}
+names(l)
+```
+```{r}
+m <- subset(l, treatment=="control")
+m
+```
+```{r}
+ggplot (m, aes(agg.metric)) +
+  geom_histogram(color = "darkgray", fill ="white", binwidth = .5) +
+  labs(x="aggresion score", y="control minor") +
+  geom_vline(aes(xintercept = mean(l$agg.metric, na.rm = TRUE)))
+```
+```{r}
+n <- subset(l, treatment=="OA topical")
+n
+```
+```{r}
+ggplot (n, aes(agg.metric)) +
+  geom_histogram(color = "darkgray", fill ="white", binwidth = .5) +
+  labs(x="aggresion score", y="OA topical minor") +
+  geom_vline(aes(xintercept = mean(l$agg.metric, na.rm = TRUE)))
+```
+```{r}
+names(l)
+```
+```{r}
+library(dplyr)
+library(ggplot2)
+cleandata5 <- l %>%
+  group_by (treatment) %>%
+  summarise (mean_non.agg.freq = mean(non.agg.freq, na.rm = TRUE),
+             mean_antennation = mean(antennation, na.rm = TRUE),
+             mean_agg.freq = mean(agg.freq, na.rm = TRUE),
+             sd_non.agg.freq = sd(non.agg.freq, na.rm = TRUE),
+             sd_antennation = sd(antennation, na.rm = TRUE), 
+             sd_agg.freq = sd(agg.freq, na.rm = TRUE),
+             count=n(),
+             se_non.agg.freq = (sd_non.agg.freq/(sqrt(count))),
+             se_antennation = (sd_antennation/(sqrt(count))),
+             se_agg.freq = (sd_agg.freq/(sqrt(count))))
+cleandata5
+```
+```{r}
+means2 <- aggregate(cleandata5, by=list(cleandata5$treatment), mean)
+means2
+```
+```{r}
+means2$treatment <- NULL
+means2
+```
+```{r}
+names(means2)[names(means2) == 'Group.1'] <- 'treatment'
+means2
+```
+```{r}
+dataset3 <- means2[1:4]
+dataset3
+```
+```{r}
+library(reshape2)
+library(ggplot2)
+dataset3
+data.n <- melt(dataset3, id.vars='treatment')
+data.n
+ggplot(data = data.n, aes(x = treatment, y = value, fill = variable)) + 
+       geom_bar(stat = 'identity', position = 'dodge')
+```
+
+###Non-parametric Mann – Whitney U-tests
+```{r}
+names(f)
+```
+```{r}
+wilcox.test(agg.freq ~ subcaste, mu=0, alt="two.sided", conf.int=T, conf.level=0.95, paired=F, exact=F, correct=T)
+```
+```{r}
+wilcox.test(agg.metric ~ subcaste, mu=0, alt="two.sided", conf.int=T, conf.level=0.95, paired=F, exact=F, correct=T)
+```
+```{r}
+wilcox.test(non.agg.freq ~ subcaste, mu=0, alt="two.sided", conf.int=T, conf.level=0.95, paired=F, exact=F, correct=T)
+```
+```{r}
+wilcox.test(antennation ~ subcaste, mu=0, alt="two.sided", conf.int=T, conf.level=0.95, paired=F, exact=F, correct=T)
+```
